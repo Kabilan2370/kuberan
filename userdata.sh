@@ -3,8 +3,15 @@
 # ---------------------------
 # UPDATE UBUNTU
 # ---------------------------
-apt-get update -y
-apt-get upgrade -y
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Make swap permanent
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+sudo apt-get update -y
 
 # ---------------------------
 # INSTALL NODE 20
@@ -25,20 +32,16 @@ npm install -g pm2
 # ---------------------------
 # CREATE STRAPI DIRECTORY
 # ---------------------------
+sudo chown -R ubuntu:ubuntu /opt/strapi
 mkdir -p /opt/strapi
 cd /opt/strapi
 
 # ---------------------------
 # CREATE STRAPI PROJECT
 # ---------------------------
-npx create-strapi-app@latest my-project --skip-run
+npx create-strapi-app@latest my-project --no-run
 
 cd my-project
-
-# ---------------------------
-# INSTALL DEPENDENCIES
-# ---------------------------
-npm install
 
 # ---------------------------
 # CREATE ENV FILE
@@ -67,11 +70,16 @@ EOF
 # ---------------------------
 # BUILD STRAPI ADMIN PANEL
 # ---------------------------
+sudo chown ubuntu:ubuntu /opt/strapi/.env
+
+# Install Strapi
+sudo -u ubuntu npm install
+sudo -u ubuntu npm install pg
 npm run build
 
 # ---------------------------
 # START STRAPI USING PM2
 # ---------------------------
-pm2 start npm --name strapi -- run start
-pm2 save
-pm2 startup systemd
+sudo pm2 start npm --name "strapi" -- start
+sudo pm2 save
+sudo pm2 startup systemd -u ubuntu --hp /home/ubuntu
