@@ -272,7 +272,7 @@ resource "aws_db_instance" "postgresql" {
 # user data values
 
 data "template_file" "userdata" {
-  template = file("${path.module}/userData.sh")
+  template = file("${path.module}/userdata.sh")
 
   vars = {
     db_host     = aws_db_instance.postgresql.address
